@@ -42,8 +42,8 @@ function exec2(file, args /*, options, callback */) {
 	};
 
 	var Accumulator = function(cb) {
-		this.stdout = {contents: ""};
-		this.stderr = {contents: ""};
+		this.stdout = { contents: "" };
+		this.stderr = { contents: "" };
 		this.callback = cb;
 
 		var limitedWrite = function(stream) {
@@ -295,18 +295,32 @@ var resizeCall = function(t, callback) {
 	return proc;
 };
 
-exports.resize = function(options, callback) {
+exports.resize = function(src, dest, width, height, options, callback) {
+	// if you're missing args, we'll throw it right back in yr face
+	if (!src || !dest || (!width && !height)) { callback(new Error("required params not provided")); }
+
+	// put the required args onto the options obj
+	options.srcPath = src || options.srcPath;
+	options.dstPath = dest || options.dstPath;
+	options.width = width || options.width;
+	options.height = hieght || options.height;
+
+	// if there are custom args, parse them
+	if (!!options.customArgs) { options.customArgs = parseArgObjs(options.customArgs); }
+
 	var t = exports.resizeArgs(options);
 	return resizeCall(t, callback)
 };
 
-exports.crop = function(options, callback) {
+exports.crop = function(src, width, height, options, callback) {
+	if (!src || (!width && !height)) { callback(new Error("required params not provided")); }
+
+	options.srcPath = src || options.srcPath;
+	options.width = width || options.width;
+	options.height = height || options.height;
+
 	if (typeof options !== 'object')
-		throw new TypeError('First argument must be an object');
-	if (!options.srcPath && !options.srcData)
-		throw new TypeError("No srcPath or data defined");
-	if (!options.height && !options.width)
-		throw new TypeError("No width or height defined");
+		throw new TypeError('options argument must be an object');
 
 	if (options.srcPath) {
 		var args = options.srcPath;
